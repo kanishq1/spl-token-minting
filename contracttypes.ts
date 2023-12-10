@@ -185,7 +185,7 @@ export type SplTokenMinter = {
     }
   ],
   "metadata": {
-    "address": "8gyzRD6DgQo7twC8mnieALv8EbD9Ait3U1hMHKvueoWo"
+    "address": "HJhLRFu72TGNHUbeFoWhTPozP8EHQ4KJ3vqP7mPRD4n3"
   }
 };
 
@@ -376,6 +376,6 @@ export const IDL: SplTokenMinter = {
     }
   ],
   "metadata": {
-    "address": "8gyzRD6DgQo7twC8mnieALv8EbD9Ait3U1hMHKvueoWo"
+    "address": "HJhLRFu72TGNHUbeFoWhTPozP8EHQ4KJ3vqP7mPRD4n3"
   }
 };

@@ -1,30 +1,39 @@
+import { FC, useCallback,useState } from 'react';
+// import { useWallet } from '@solana/wallet-adapter-react';
 import { useConnection, useWallet, useAnchorWallet } from '@solana/wallet-adapter-react';
-import { Keypair, SystemProgram, Transaction, TransactionMessage, TransactionSignature, VersionedTransaction } from '@solana/web3.js';
-import { FC, useCallback } from 'react';
-import { notify } from "../utils/notifications";
-
-import { useState } from 'react';
-import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
-// import { SplTokenMinter } from "../target/types/spl_token_minter";
-import { PublicKey, SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { Metaplex } from "@metaplex-foundation/js";
-import { assert } from "chai";
+import { Keypair, SystemProgram, Transaction, TransactionMessage, TransactionSignature, VersionedTransaction , SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL, Commitment, Connection, PublicKey} from '@solana/web3.js';
 import {
     ASSOCIATED_TOKEN_PROGRAM_ID,
     getAssociatedTokenAddressSync,
     getOrCreateAssociatedTokenAccount,
     TOKEN_PROGRAM_ID,
     createAssociatedTokenAccount,
-    getAccount, getMint, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction
+    getAccount, getMint, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
 
-import { SplTokenMinter, IDL } from "../../contracttypes"
+import { notify } from "../utils/notifications";
+import * as anchor from "@coral-xyz/anchor";
+import { Program ,Idl,  AnchorProvider,
+    BN,
+    utils,
+    web3,
+} from "@coral-xyz/anchor";
+import { Metaplex } from "@metaplex-foundation/js";
 
 
-const PROGRAM_ID = new PublicKey(`8gyzRD6DgQo7twC8mnieALv8EbD9Ait3U1hMHKvueoWo`);
+import idl from '../../idl.json'
 
 
+// import { SplTokenMinter, IDL } from "../../contracttypes"
+
+const programId = new PublicKey(idl.metadata.address);
+
+const opts: { preflightCommitment: Commitment } = {
+    preflightCommitment: 'processed',
+};
+
+
+// const PROGRAM_ID = new PublicKey(`HJhLRFu72TGNHUbeFoWhTPozP8EHQ4KJ3vqP7mPRD4n3`);
 
 
 export const checkIfTokenAccountExists = async (
@@ -54,26 +63,54 @@ export const checkIfTokenAccountExists = async (
   };
 
 
+async function findAssociatedTokenAddress(
+    walletAddress: PublicKey,
+    tokenMintAddress: PublicKey
+): Promise<PublicKey>{
+    return (await PublicKey.findProgramAddress([
+        walletAddress.toBuffer(),
+        TOKEN_PROGRAM_ID.toBuffer(),
+        tokenMintAddress.toBuffer(),
+    ],
+
+    ASSOCIATED_TOKEN_PROGRAM_ID
+    
+    ))[0]
+}
+
 
 
 export const SendTransaction: FC = () => {
-
     const [tokenMint, setTokenMint] = useState<any>();
-
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
-    const wallet = useAnchorWallet();
+    const wallet = useWallet();
 
-    const provider = new anchor.AnchorProvider(connection, wallet, {});
-    const program = new Program<SplTokenMinter>(IDL, PROGRAM_ID, provider)
+   // const connection = useConnection()
+
+   // const provider = new anchor.AnchorProvider(connection, wallet, {});
+
+
+    const getProgram = () => {
+        /* create the provider and return it to the caller */ 
+      
+        const provider = new AnchorProvider(connection, wallet as any, opts);
+        /* create the program interface combining the idl, program ID, and provider */
+        const program = new Program(idl as Idl, programId, provider);
+        return program;
+    };
+
+
+
+    const program = getProgram();
 
     // data and mint account
     const dataAccount = anchor.web3.Keypair.generate();
     const mintKeypair = anchor.web3.Keypair.generate();
 
 
-    const tokenTitle = "Kingmans";
-    const tokenSymbol = "KING";
+    const tokenTitle = "pinkman";
+    const tokenSymbol = "pinkish";
     const tokenUri =
         "https://res.cloudinary.com/ddwkxn8ak/image/upload/v1698823073/solangsol/Course1_mhz1c1.png";
 
@@ -93,6 +130,8 @@ export const SendTransaction: FC = () => {
             .signers([dataAccount])
             .rpc();
         console.log("Your transaction signature", createdataAccounttx);
+        console.log("Your transaction dataAccount", dataAccount.publicKey.toBase58());
+
 
         // creating metadata address
 
@@ -123,7 +162,11 @@ export const SendTransaction: FC = () => {
                 .rpc({ skipPreflight: true });
             console.log("Your transaction signature", createMinttx);
 
-            setTokenMint(mintKeypair.publicKey);
+            let mintAccount = await getMint(connection, mintKeypair.publicKey);
+
+            console.log("mintAccount",mintAccount.address.toBase58())
+
+           // setTokenMint(mintKeypair.publicKey);
 
         } catch (error) {
             notify({ type: 'error', message: `Transaction failed!`, description: error?.message });
@@ -136,51 +179,70 @@ export const SendTransaction: FC = () => {
 
 
     const createtokenAccountandMintinWallet = useCallback(async () => {
-        if (tokenMint) {
-            let mintAccount = await getMint(connection, tokenMint);
-            console.log("mintAccount", mintAccount);
+        // if (tokenMint) {
+            let mintAccount = await getMint(connection, mintKeypair.publicKey);
+            console.log("mintAccount", mintAccount.address.toBase58());
 
 
-            let ata = await getAssociatedTokenAddress(
-                tokenMint, // mint
-                wallet.publicKey // owner
-              );
-              console.log(`ATA: ${ata.toBase58()}`);
+            const associatedTokenAddress = getAssociatedTokenAddressSync(mintKeypair.publicKey, publicKey, false);
 
+            console.log("ass",associatedTokenAddress);
 
-
-              let tx = new Transaction().add(
+            const transaction = new web3.Transaction().add(
                 createAssociatedTokenAccountInstruction(
-                  wallet.publicKey, // payer
-                  ata, // ata
-                  wallet.publicKey, // owner
-                  tokenMint // mint
+                    publicKey,
+                    associatedTokenAddress,
+                    publicKey,
+                    mintKeypair.publicKey
                 )
-              );
+            )
 
-              tx.feePayer = wallet.publicKey;
-                let blockhash = (await connection.getLatestBlockhash('finalized')).blockhash;
-                tx.recentBlockhash = blockhash;
-                wallet.signTransaction(tx);
-                console.log(`txhash: ${tx}`, tx);
+            // transaction.feePayer(publicKey);
+
+            transaction.feePayer = publicKey;
+
+            let blockhash = (await connection.getLatestBlockhash('finalized')).blockhash;
+            transaction.recentBlockhash = blockhash;
+               wallet.signTransaction(transaction);
+                console.log(`txhash: ${transaction}`, transaction);
+
+           // console.log("")
+        //    console.log("transaction",transaction)
+          //  let ata = await getAssociatedTokenAddress(tokenMint, publicKey);
+           //// console.log(`ATA: ${ast}`);
+
+            //   let tx = new Transaction().add(
+            //     createAssociatedTokenAccountInstruction(
+            //       wallet.publicKey, // payer
+            //       ata, // ata
+            //       wallet.publicKey, // owner
+            //       tokenMint // mint
+            //     )
+            //   );
+
+            //   tx.feePayer = wallet.publicKey;
+            //     let blockhash = (await connection.getLatestBlockhash('finalized')).blockhash;
+            //     tx.recentBlockhash = blockhash;
+            //     wallet.signTransaction(tx);
+            //     console.log(`txhash: ${tx}`, tx);
 
              // console.log(`txhash: ${await connection.sendTransaction(tx, [wallet])}`);
 
 
-           const transfertokentx = await program.methods
-                    .mintTo(
-                        new anchor.BN(150) // amount to mint
-                    )
-                    .accounts({
-                        mint: tokenMint,
-                        tokenAccount: ata,
-                        mintAuthority: wallet.publicKey,    
-                    })
-                    .rpc({ skipPreflight: true });
-                console.log("Your transaction signature", transfertokentx);
+        //    const transfertokentx = await program.methods
+        //             .mintTo(
+        //                 new anchor.BN(150) // amount to mint
+        //             )
+        //             .accounts({
+        //                 mint: tokenMint,
+        //                 tokenAccount: ata,
+        //                 mintAuthority: wallet.publicKey,    
+        //             })
+        //             .rpc({ skipPreflight: true });
+        //         console.log("Your transaction signature", transfertokentx);
 
-           console.log("wallet",wallet)
-        }
+        //    console.log("wallet",wallet)
+      //  }
 
         },[connection, tokenMint])
 //    const letokenAccount = await getOrCreateAssociatedTokenAccount(
