@@ -1,19 +1,12 @@
-import Link from 'next/link';
-import React from 'react';
-import { cn } from 'utils';
+import Link from "next/link";
+import React from "react";
+import clsx from "clsx";
 
 /**
  * Properties for a card component.
  */
 type TextProps = {
-    variant:
-        | 'big-heading'
-        | 'heading'
-        | 'sub-heading'
-        | 'nav-heading'
-        | 'nav'
-        | 'input'
-        | 'label';
+    variant: "big-heading" | "heading" | "sub-heading" | "nav-heading" | "nav" | "input" | "label";
     className?: string;
     href?: string;
     children?: React.ReactNode;
@@ -24,14 +17,14 @@ type TextProps = {
  * Pre-defined styling, according to agreed-upon design-system.
  */
 const variants = {
-    heading: 'text-3xl font-medium',
-    'sub-heading': 'text-2xl font-medium',
-    'nav-heading': 'text-lg font-medium sm:text-xl',
-    nav: 'font-medium',
-    paragraph: 'text-lg',
-    'sub-paragraph': 'text-base font-medium text-inherit',
-    input: 'text-sm uppercase tracking-wide',
-    label: 'text-xs uppercase tracking-wide',
+    heading: "text-3xl font-medium",
+    "sub-heading": "text-2xl font-medium",
+    "nav-heading": "text-lg font-medium sm:text-xl",
+    nav: "font-medium",
+    paragraph: "text-lg",
+    "sub-paragraph": "text-base font-medium text-inherit",
+    input: "text-sm uppercase tracking-wide",
+    label: "text-xs uppercase tracking-wide",
 };
 
 /**
@@ -44,7 +37,7 @@ const variants = {
  * @param children Child elements to be rendered within the component.
  */
 const Text = ({ variant, className, href, children }: TextProps) => (
-    <p className={cn(className, variants[variant])}>
+    <p className={clsx(className, variants[variant])}>
         {href ? (
             <Link href={href} className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                 {children}

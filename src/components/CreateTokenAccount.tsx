@@ -84,13 +84,13 @@ export const CreateTokenAccountForm: FC = () => {
                 <span></span>
             )}
             {txSig ? (
-                <div className="flex flex-col gap-y-2">
+                <div className="flex flex-col gap-y-2 mt-4">
                     <p className="break-words">Token Account Address: {tokenAccount}</p>
                     <p>
-                        View your transaction on{" "}
+                        View your transaction on &nbsp;
                         <a className="link" href={link()}>
                             Solana Explorer
-                        </a>{" "}
+                        </a>
                     </p>
                 </div>
             ) : null}
