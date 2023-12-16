@@ -1,14 +1,6 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-// import * as web3 from "@solana/web3.js";
-import { FC, useCallback, useState } from "react";
-import styles from "../styles/Home.module.css";
-import {
-    MINT_SIZE,
-    TOKEN_PROGRAM_ID,
-    getMinimumBalanceForRentExemptMint,
-    createInitializeMintInstruction,
-    getMint,
-} from "@solana/spl-token";
+import { useState } from "react";
+import { getMint } from "@solana/spl-token";
 
 import * as anchor from "@coral-xyz/anchor";
 import { Program, Idl, AnchorProvider, BN, utils, web3 } from "@coral-xyz/anchor";
@@ -17,6 +9,7 @@ import { Metaplex } from "@metaplex-foundation/js";
 import idl from "../../idl.json";
 import { Commitment, PublicKey, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import { notify } from "utils/notifications";
+import { CopyIcon, LinkIcon, Loader } from "./Icons";
 
 const programId = new PublicKey(idl.metadata.address);
 
@@ -27,6 +20,8 @@ const opts: { preflightCommitment: Commitment } = {
 export const CreateMintForm = () => {
     const [txSig, setTxSig] = useState("");
     const [mint, setMint] = useState("");
+
+    const [loading, setLoading] = useState(false);
 
     const { connection } = useConnection();
     const wallet = useWallet();
@@ -57,6 +52,8 @@ export const CreateMintForm = () => {
 
     const createMint = async (event) => {
         event.preventDefault();
+
+        setLoading(true);
 
         if (!publicKey) {
             notify({ type: "error", message: `Wallet not connected!` });
@@ -109,6 +106,8 @@ export const CreateMintForm = () => {
             console.log("error", `Transaction failed! ${error?.message}`);
             return;
         }
+
+        setLoading(false);
     };
 
     return (
@@ -116,7 +115,7 @@ export const CreateMintForm = () => {
             {publicKey ? (
                 <form onSubmit={createMint} className="text-center">
                     <button type="submit" className="btn">
-                        Create Mint
+                        {loading && <Loader />} Create Mint
                     </button>
                 </form>
             ) : (
@@ -124,11 +123,22 @@ export const CreateMintForm = () => {
             )}
             {txSig ? (
                 <div className="flex flex-col gap-y-2 mt-4">
-                    <p>Token Mint Address: {mint}</p>
-                    <p>
-                        View your transaction on{" "}
-                        <a className="link" href={link()}>
+                    <p className="flex items-center gap-x-2">
+                        Token Mint Address:
+                        <button
+                            onClick={() => navigator.clipboard.writeText(mint)}
+                            className="btn p-1 min-h-0 h-fit bg-transparent normal-case gap-x-2"
+                        >
+                            {mint} <CopyIcon />
+                        </button>
+                    </p>
+                    <p className="flex items-center gap-x-2">
+                        View your transaction on
+                        <a className="link flex gap-x-2 items-center" href={link()}>
                             Solana Explorer
+                            <span className="h-5 w-5">
+                                <LinkIcon />
+                            </span>
                         </a>
                     </p>
                 </div>

@@ -1,6 +1,5 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import * as web3 from "@solana/web3.js";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { FC, useState } from "react";
 
 import {
@@ -9,10 +8,14 @@ import {
     ASSOCIATED_TOKEN_PROGRAM_ID,
     createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
+import { CopyIcon, LinkIcon, Loader } from "./Icons";
 
 export const CreateTokenAccountForm: FC = () => {
     const [txSig, setTxSig] = useState("");
     const [tokenAccount, setTokenAccount] = useState("");
+
+    const [loading, setLoading] = useState(false);
+
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
     const link = () => {
@@ -21,6 +24,8 @@ export const CreateTokenAccountForm: FC = () => {
 
     const createTokenAccount = async (event) => {
         event.preventDefault();
+
+        setLoading(true);
         if (!connection || !publicKey) {
             return;
         }
@@ -51,6 +56,8 @@ export const CreateTokenAccountForm: FC = () => {
             setTxSig(sig);
             setTokenAccount(associatedToken.toString());
         });
+
+        setLoading(false);
     };
 
     return (
@@ -77,7 +84,7 @@ export const CreateTokenAccountForm: FC = () => {
                         />
                     </div>
                     <button type="submit" className="btn mt-auto">
-                        Create Token Account
+                        {loading && <Loader />}Create Token Account
                     </button>
                 </form>
             ) : (
@@ -85,11 +92,16 @@ export const CreateTokenAccountForm: FC = () => {
             )}
             {txSig ? (
                 <div className="flex flex-col gap-y-2 mt-4">
-                    <p className="break-words">Token Account Address: {tokenAccount}</p>
-                    <p>
-                        View your transaction on &nbsp;
-                        <a className="link" href={link()}>
+                    <p className="break-words">
+                        Token Account Address: <span className="text-gray-400">{tokenAccount}</span>
+                    </p>
+                    <p className="flex items-center gap-x-2">
+                        View your transaction on
+                        <a className="link flex gap-x-2 items-center" href={link()}>
                             Solana Explorer
+                            <span className="h-5 w-5">
+                                <LinkIcon />
+                            </span>
                         </a>
                     </p>
                 </div>
