@@ -46,8 +46,8 @@ export const CreateMintForm = () => {
     const dataAccount = anchor.web3.Keypair.generate();
     const mintKeypair = anchor.web3.Keypair.generate();
 
-    const tokenTitle = "opossss";
-    const tokenSymbol = "opp";
+    const tokenTitle = "Temp Token";
+    const tokenSymbol = "TEMP";
     const tokenUri = "https://res.cloudinary.com/ddwkxn8ak/image/upload/v1698823073/solangsol/Course1_mhz1c1.png";
 
     const createMint = async (event) => {

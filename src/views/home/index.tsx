@@ -14,6 +14,7 @@ import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 import { CreateTokenAccountForm } from "components/CreateTokenAccount";
 import { MintToForm } from "components/MintToForm";
 import { CreateMintForm } from "components/CreateMint";
+import { TransferToken } from "components/TransferToken";
 
 export const HomeView: FC = ({}) => {
     const wallet = useWallet();
@@ -39,6 +40,9 @@ export const HomeView: FC = ({}) => {
                     </div>
                     <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 w-1/2">
                         <MintToForm />
+                    </div>
+                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 w-1/2">
+                        <TransferToken />
                     </div>
                 </div>
 

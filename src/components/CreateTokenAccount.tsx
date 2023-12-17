@@ -18,6 +18,7 @@ export const CreateTokenAccountForm: FC = () => {
 
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
+
     const link = () => {
         return txSig ? `https://explorer.solana.com/tx/${txSig}?cluster=devnet` : "";
     };

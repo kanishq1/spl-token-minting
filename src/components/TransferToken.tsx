@@ -1,6 +1,5 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import * as web3 from "@solana/web3.js";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { FC, useState } from "react";
 import {
     createMintToInstruction,
@@ -8,18 +7,21 @@ import {
     TOKEN_PROGRAM_ID,
     ASSOCIATED_TOKEN_PROGRAM_ID,
     getAccount,
+    getOrCreateAssociatedTokenAccount,
+    createTransferInstruction,
+    createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
 import { LinkIcon, Loader } from "./Icons";
 import * as anchor from "@coral-xyz/anchor";
 
-export const MintToForm: FC = () => {
+export const TransferToken: FC = () => {
     const [txSig, setTxSig] = useState("");
     const [tokenAccount, setTokenAccount] = useState("");
     const [balance, setBalance] = useState("");
     const [loading, setLoading] = useState(false);
 
     const { connection } = useConnection();
-    const { publicKey, sendTransaction } = useWallet();
+    const { publicKey, sendTransaction, signTransaction } = useWallet();
     const link = () => {
         return txSig ? `https://explorer.solana.com/tx/${txSig}?cluster=devnet` : "";
     };
@@ -33,11 +35,13 @@ export const MintToForm: FC = () => {
         const transaction = new web3.Transaction();
 
         const mintPubKey = new web3.PublicKey(event.target.mint.value);
-        // const recipientPubKey = new web3.PublicKey(event.target.recipient.value);
+        const recipientPubKey = new web3.PublicKey(event.target.recipient.value);
         let amount = event.target.amount.value;
         amount = amount * 10 ** 9;
 
-        const associatedToken = await getAssociatedTokenAddress(
+        console.info("hee------");
+
+        const senderAta = await getAssociatedTokenAddress(
             mintPubKey,
             publicKey,
             false,
@@ -45,16 +49,50 @@ export const MintToForm: FC = () => {
             ASSOCIATED_TOKEN_PROGRAM_ID
         );
 
-        transaction.add(createMintToInstruction(mintPubKey, associatedToken, publicKey, amount));
+        console.info("senderAta", senderAta.toString());
+
+        const receiverAta = await getAssociatedTokenAddress(
+            mintPubKey,
+            recipientPubKey,
+            false,
+            TOKEN_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID
+        );
+
+        try {
+            await getAccount(connection, receiverAta);
+        } catch (e) {
+            transaction.add(
+                createAssociatedTokenAccountInstruction(
+                    publicKey,
+                    receiverAta,
+                    recipientPubKey,
+                    mintPubKey,
+                    TOKEN_PROGRAM_ID,
+                    ASSOCIATED_TOKEN_PROGRAM_ID
+                )
+            );
+        }
+
+        transaction.add(
+            createTransferInstruction(
+                senderAta, // source
+                receiverAta, // dest
+                publicKey,
+                amount,
+                [],
+                TOKEN_PROGRAM_ID
+            )
+        );
 
         const signature = await sendTransaction(transaction, connection);
 
         await connection.confirmTransaction(signature, "confirmed");
 
         setTxSig(signature);
-        setTokenAccount(associatedToken.toString());
+        setTokenAccount(receiverAta.toString());
 
-        const account = await getAccount(connection, associatedToken);
+        const account = await getAccount(connection, receiverAta);
         setBalance(account.amount.toString());
         setLoading(false);
     };
@@ -69,7 +107,7 @@ export const MintToForm: FC = () => {
                         </label>
                         <input id="mint" type="text" className="input" placeholder="Enter Token Mint" required />
                     </div>
-                    {/* <div className="flex flex-col gap-y-2">
+                    <div className="flex flex-col gap-y-2">
                         <label htmlFor="recipient" className="text-xl">
                             Recipient:
                         </label>
@@ -80,7 +118,7 @@ export const MintToForm: FC = () => {
                             placeholder="Enter Recipient PublicKey"
                             required
                         />
-                    </div> */}
+                    </div>
                     <div className="flex flex-col gap-y-2">
                         <label htmlFor="amount" className="text-xl">
                             Amount Tokens to Mint:
@@ -88,7 +126,7 @@ export const MintToForm: FC = () => {
                         <input id="amount" type="text" className="input" placeholder="e.g. 100" required />
                     </div>
                     <button type="submit" className="btn">
-                        {loading && <Loader />} Mint Tokens to your Wallet
+                        {loading && <Loader />} Receiver Transfer Tokens
                     </button>
                 </form>
             ) : (
