@@ -114,7 +114,7 @@ export const CreateMintForm = () => {
         <div>
             {publicKey ? (
                 <form onSubmit={createMint} className="text-center">
-                    <button type="submit" className="btn">
+                    <button type="submit" className="btn px-8">
                         {loading && <Loader />} Create Mint
                     </button>
                 </form>
