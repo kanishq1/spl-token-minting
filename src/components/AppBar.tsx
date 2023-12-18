@@ -16,7 +16,7 @@ export const AppBar: React.FC = () => {
             {/* NavBar / Header */}
             <div className="mx-auto border border-gray-600 max-w-7xl flex justify-between sticky top-5 px-4 py-3 rounded-md bg-opacity-10 bg-blur z-20 bg-white">
                 <div className="navbar-start justify-center flex flex-col">
-                    <div className="hidden sm:inline ml-2 my-auto font-semibold text-2xl">Solana Next</div>
+                    <div className="hidden sm:inline ml-2 my-auto font-semibold text-xl">Solana with Solidity</div>
                     <WalletMultiButtonDynamic className="btn-ghost btn-sm relative flex md:hidden text-lg " />
                 </div>
 
@@ -26,30 +26,7 @@ export const AppBar: React.FC = () => {
                     <div className="hidden md:inline-flex align-items-center items-center justify-items gap-6">
                         <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg my-auto" />
                     </div>
-                    <label
-                        htmlFor="my-drawer"
-                        className="btn-gh items-center justify-between md:hidden mr-6"
-                        onClick={() => setIsNavOpen(!isNavOpen)}
-                    >
-                        <div className="HAMBURGER-ICON space-y-2.5 ml-5">
-                            <div className={`h-0.5 w-8 bg-purple-600 ${isNavOpen ? "hidden" : ""}`} />
-                            <div className={`h-0.5 w-8 bg-purple-600 ${isNavOpen ? "hidden" : ""}`} />
-                            <div className={`h-0.5 w-8 bg-purple-600 ${isNavOpen ? "hidden" : ""}`} />
-                        </div>
-                        <div
-                            className={`absolute block h-0.5 w-8 animate-pulse bg-purple-600 ${
-                                isNavOpen ? "" : "hidden"
-                            }`}
-                            style={{ transform: "rotate(45deg)" }}
-                        ></div>
-                        <div
-                            className={`absolute block h-0.5 w-8 animate-pulse bg-purple-600 ${
-                                isNavOpen ? "" : "hidden"
-                            }`}
-                            style={{ transform: "rotate(135deg)" }}
-                        ></div>
-                    </label>
-                    <div className="w-1 bg-gray-500 h-full rounded-full"></div>
+                    <div className="w-1 bg-gray-500 h-full rounded-full hidden md:inline-flex "></div>
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} className="btn btn-square btn-ghost text-right mr-4">
                             <svg

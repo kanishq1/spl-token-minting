@@ -35,18 +35,18 @@ export const HomeView: FC = ({}) => {
             <div className="md:px-16 px-4 pt-4 flex flex-col items-start gap-y-16">
                 <div className="flex flex-col gap-16 w-full items-center">
                     <CreateMintForm />
-                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 w-1/2">
+                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 lg:w-1/2 w-full">
                         <CreateTokenAccountForm />
                     </div>
-                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 w-1/2">
+                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 lg:w-1/2 w-full">
                         <MintToForm />
                     </div>
-                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 w-1/2">
+                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 lg:w-1/2 w-full">
                         <TransferToken />
                     </div>
                 </div>
 
-                <div className="flex gap-16 w-full">
+                <div className="flex gap-16 w-full lg:flex-row flex-col-reverse">
                     <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg px-16 py-12 text-xl">
                         You $SOL balance is
                         <h4 className="text-2xl font-semibold text-white mt-4">

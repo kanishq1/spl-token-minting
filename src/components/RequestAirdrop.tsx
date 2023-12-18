@@ -43,10 +43,10 @@ export const RequestAirdrop: FC = () => {
                 ></div>
 
                 <button
-                    className="px-32 text-xl m-2 btn animate-pulse bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-white"
+                    className="lg:px-32 px-16 text-xl m-2 btn animate-pulse bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-white"
                     onClick={onClick}
                 >
-                    <span>Airdrop $SOL</span>
+                    <span className="w-full">Airdrop $SOL</span>
                 </button>
             </div>
         </div>
