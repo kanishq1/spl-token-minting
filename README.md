@@ -58,3 +58,72 @@ Open http://localhost:3000 with your browser to see the DApp.
 1. To create the similar Dapp you need to have pre knowledge of react and basic of spl token.
 2. You can use the code from the repository and modify it according to your need.
 3. You can also use the code from the repository and deploy it on vercel or netlify to create your own DApp.
+
+## Code Explanation
+
+To create a new SPL-Token you first have to create a Token Mint. A Token Mint is the account that holds data about a specific token.
+
+```javascript
+await program.methods
+    .createTokenMint(
+        wallet.publicKey, // freeze authority
+        9, // 0 decimals for NFT
+        tokenTitle, // NFT name
+        tokenSymbol, // NFT symbol
+        tokenUri // NFT URI
+    )
+    .accounts({
+        payer: wallet.publicKey,
+        mint: mintKeypair.publicKey,
+        metadata: metadataAddress,
+        mintAuthority: wallet.publicKey,
+        rentAddress: SYSVAR_RENT_PUBKEY,
+        metadataProgramId: new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+    })
+    .signers([mintKeypair])
+    .rpc({ skipPreflight: true });
+```
+
+Once you have created the Token Mint, you can create a Token Account. A Token Account is the account that holds the balance of a specific token.
+Only the owner is authorized to decrease the Token Account balance (transfer, burn, etc.) while anyone can send tokens to the Token Account to increase its balance.
+
+```javascript
+createAssociatedTokenAccountInstruction(
+    publicKey,
+    associatedToken,
+    owner,
+    mint,
+    TOKEN_PROGRAM_ID,
+    ASSOCIATED_TOKEN_PROGRAM_ID
+);
+```
+
+Once you have created the Token Account, you can mint tokens to the Token Account.
+
+```javascript
+await program.methods
+    .mintTo(amount)
+    .accounts({
+        mint: mintKeypair.publicKey,
+        tokenAccount: associatedTokenAccount,
+        mintAuthority: wallet.publicKey,
+    })
+    .signers([senderKeypair])
+    .rpc({ skipPreflight: true });
+```
+
+Once you have minted the tokens, you can transfer the tokens to any Token Account.
+
+```javascript
+await program.methods
+    .transfer(
+        amount,
+    )
+    .accounts({
+        from: fromTokenAccount
+        to: toTokenAccount,
+        owner: senderPublicKey,
+    })
+    .signers([senderKeypair])
+    .rpc({ skipPreflight: true });
+```
