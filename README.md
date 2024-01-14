@@ -37,18 +37,24 @@ Open http://localhost:3000 with your browser to see the DApp.
 1. Connect your wallet to the DAPP by clicking on the "Select Wallet" button.
    ![image](image.png)
    Now you can check your balance at the bottom of the DApp, also you can airdrop devnet sol to your wallet
-   YOu can switch the network of the dapp from the header.
+   ![Alt text](image-1.png)
+   You can switch the network of the dapp from the header.
+   ![Alt text](image-2.png)
 
 2. Now click on create mint to create the token mint, once you sign the transaction and create the mint you will get the token mint address.
+   ![Alt text](image-3.png)
 
 3. Now you create token account in which you want to mint the tokens, you can create multiple token accounts, once you sign the transaction you will get the token account address.
+   ![Alt text](image-4.png)
 
 4. Now you can mint the tokens to the token account you created, you can mint multiple times, once you sign the transaction you will get the transaction id.
+   ![Alt text](image-5.png)
 
 5. Now you can transfer the tokens to any token account, once you sign the transaction you will get the transaction id.
+   ![Alt text](image-6.png)
 
 ## Creating the similar DApp
 
-1. To create the similar Dapp you need to have pre knowledge of react and basic solana spl.
+1. To create the similar Dapp you need to have pre knowledge of react and basic of spl token.
 2. You can use the code from the repository and modify it according to your need.
 3. You can also use the code from the repository and deploy it on vercel or netlify to create your own DApp.
