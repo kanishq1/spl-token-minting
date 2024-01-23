@@ -1,6 +1,6 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import * as web3 from "@solana/web3.js";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, Commitment, PublicKey } from "@solana/web3.js";
 import { FC, useState } from "react";
 import {
     createMintToInstruction,
@@ -11,6 +11,15 @@ import {
 } from "@solana/spl-token";
 import { LinkIcon, Loader } from "./Icons";
 import * as anchor from "@coral-xyz/anchor";
+import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
+
+import idl from "../../idl.json";
+
+const opts: { preflightCommitment: Commitment } = {
+    preflightCommitment: "processed",
+};
+
+const programId = new PublicKey(idl.metadata.address);
 
 export const MintToForm: FC = () => {
     const [txSig, setTxSig] = useState("");
@@ -20,12 +29,27 @@ export const MintToForm: FC = () => {
 
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
+
+    const wallet = useWallet();
+
     const link = () => {
         return txSig ? `https://explorer.solana.com/tx/${txSig}?cluster=devnet` : "";
     };
 
+    const getProgram = () => {
+        /* create the provider and return it to the caller */
+
+        const provider = new AnchorProvider(connection, wallet as any, opts);
+        /* create the program interface combining the idl, program ID, and provider */
+        const program = new Program(idl as Idl, programId, provider);
+        return program;
+    };
+
+    const program = getProgram();
+
     const mintTo = async (event) => {
         event.preventDefault();
+
         setLoading(true);
         if (!connection || !publicKey) {
             return;
@@ -45,13 +69,18 @@ export const MintToForm: FC = () => {
             ASSOCIATED_TOKEN_PROGRAM_ID
         );
 
-        transaction.add(createMintToInstruction(mintPubKey, associatedToken, publicKey, amount));
+        amount = new anchor.BN(amount);
 
-        const signature = await sendTransaction(transaction, connection);
+        const createMint = await program.methods
+            .mintTo(amount)
+            .accounts({
+                mint: mintPubKey,
+                tokenAccount: associatedToken,
+                mintAuthority: publicKey,
+            })
+            .rpc({ skipPreflight: true });
 
-        await connection.confirmTransaction(signature, "confirmed");
-
-        setTxSig(signature);
+        setTxSig(createMint);
         setTokenAccount(associatedToken.toString());
 
         const account = await getAccount(connection, associatedToken);
@@ -69,18 +98,6 @@ export const MintToForm: FC = () => {
                         </label>
                         <input id="mint" type="text" className="input" placeholder="Enter Token Mint" required />
                     </div>
-                    {/* <div className="flex flex-col gap-y-2">
-                        <label htmlFor="recipient" className="text-xl">
-                            Recipient:
-                        </label>
-                        <input
-                            id="recipient"
-                            type="text"
-                            className="input"
-                            placeholder="Enter Recipient PublicKey"
-                            required
-                        />
-                    </div> */}
                     <div className="flex flex-col gap-y-2">
                         <label htmlFor="amount" className="text-xl">
                             Amount Tokens to Mint:

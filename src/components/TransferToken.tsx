@@ -13,6 +13,16 @@ import {
 } from "@solana/spl-token";
 import { LinkIcon, Loader } from "./Icons";
 import * as anchor from "@coral-xyz/anchor";
+import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
+
+import idl from "../../idl.json";
+import { Commitment, PublicKey } from "@solana/web3.js";
+
+const opts: { preflightCommitment: Commitment } = {
+    preflightCommitment: "processed",
+};
+
+const programId = new PublicKey(idl.metadata.address);
 
 export const TransferToken: FC = () => {
     const [txSig, setTxSig] = useState("");
@@ -21,10 +31,23 @@ export const TransferToken: FC = () => {
     const [loading, setLoading] = useState(false);
 
     const { connection } = useConnection();
-    const { publicKey, sendTransaction, signTransaction } = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
+    const wallet = useWallet();
+
     const link = () => {
         return txSig ? `https://explorer.solana.com/tx/${txSig}?cluster=devnet` : "";
     };
+
+    const getProgram = () => {
+        /* create the provider and return it to the caller */
+
+        const provider = new AnchorProvider(connection, wallet as any, opts);
+        /* create the program interface combining the idl, program ID, and provider */
+        const program = new Program(idl as Idl, programId, provider);
+        return program;
+    };
+
+    const program = getProgram();
 
     const mintTo = async (event) => {
         event.preventDefault();
@@ -39,8 +62,6 @@ export const TransferToken: FC = () => {
         let amount = event.target.amount.value;
         amount = amount * 10 ** 9;
 
-        console.info("hee------");
-
         const senderAta = await getAssociatedTokenAddress(
             mintPubKey,
             publicKey,
@@ -48,8 +69,6 @@ export const TransferToken: FC = () => {
             TOKEN_PROGRAM_ID,
             ASSOCIATED_TOKEN_PROGRAM_ID
         );
-
-        console.info("senderAta", senderAta.toString());
 
         const receiverAta = await getAssociatedTokenAddress(
             mintPubKey,
@@ -74,16 +93,18 @@ export const TransferToken: FC = () => {
             );
         }
 
-        transaction.add(
-            createTransferInstruction(
-                senderAta, // source
-                receiverAta, // dest
-                publicKey,
-                amount,
-                [],
-                TOKEN_PROGRAM_ID
-            )
-        );
+        amount = new anchor.BN(amount);
+
+        const transferTx = await program.methods
+            .transferTokens(amount)
+            .accounts({
+                from: senderAta,
+                to: receiverAta,
+                owner: publicKey,
+            })
+            .instruction();
+
+        transaction.add(transferTx);
 
         const signature = await sendTransaction(transaction, connection);
 
@@ -126,7 +147,7 @@ export const TransferToken: FC = () => {
                         <input id="amount" type="text" className="input" placeholder="e.g. 100" required />
                     </div>
                     <button type="submit" className="btn">
-                        {loading && <Loader />} Receiver Transfer Tokens
+                        {loading && <Loader />} Transfer Tokens
                     </button>
                 </form>
             ) : (

@@ -100,6 +100,8 @@ createAssociatedTokenAccountInstruction(
 
 Once you have created the Token Account, you can mint tokens to the Token Account.
 
+Amount here should be a BIGINT.
+
 ```javascript
 await program.methods
     .mintTo(amount)
@@ -108,7 +110,6 @@ await program.methods
         tokenAccount: associatedTokenAccount,
         mintAuthority: wallet.publicKey,
     })
-    .signers([senderKeypair])
     .rpc({ skipPreflight: true });
 ```
 
@@ -116,14 +117,11 @@ Once you have minted the tokens, you can transfer the tokens to any Token Accoun
 
 ```javascript
 await program.methods
-    .transfer(
-        amount,
-    )
+    .transferTokens(amount)
     .accounts({
-        from: fromTokenAccount
+        from: fromTokenAccount,
         to: toTokenAccount,
         owner: senderPublicKey,
     })
-    .signers([senderKeypair])
     .rpc({ skipPreflight: true });
 ```
